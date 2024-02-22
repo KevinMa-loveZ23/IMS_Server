@@ -16,6 +16,8 @@ data class AccountCreateBody(
             return AccountCreateBody(-1, "VOID")
         }
     }
+
+    override fun isVoid(): Boolean = id == -1L
 }
 
 data class AccountInfoBody(
@@ -47,9 +49,11 @@ data class AccountInfoBody(
         }
 
         fun void(): AccountInfoBody {
-            return AccountInfoBody(-1,"VOID")
+            return AccountInfoBody(-1L,"VOID")
         }
     }
+
+    override fun isVoid(): Boolean = id == -1L
 }
 
 data class AccountModifyBody(
@@ -61,6 +65,8 @@ data class AccountModifyBody(
             return AccountModifyBody(false, null)
         }
     }
+
+    override fun isVoid(): Boolean = !passwordModified && modifiablePart == null
 }
 
 data class AccountDeleteBody(
@@ -71,4 +77,6 @@ data class AccountDeleteBody(
             return AccountDeleteBody(-1)
         }
     }
+
+    override fun isVoid(): Boolean = id == -1L
 }

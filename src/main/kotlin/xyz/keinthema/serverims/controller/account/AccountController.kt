@@ -7,7 +7,10 @@ import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Mono
 import xyz.keinthema.serverims.constant.ControllerConst.Companion.ACCOUNT_ID_PATH
 import xyz.keinthema.serverims.constant.ControllerConst.Companion.ACCOUNT_ID_STR
+import xyz.keinthema.serverims.constant.ControllerConst.Companion.ACCOUNT_PATH
 import xyz.keinthema.serverims.constant.ControllerConst.Companion.badRequestMonoResponse
+import xyz.keinthema.serverims.constant.ControllerConst.Companion.internalServerErrorMonoResponse
+import xyz.keinthema.serverims.constant.ControllerConst.Companion.notFoundMonoResponse
 import xyz.keinthema.serverims.constant.ControllerConst.Companion.unauthorizedMonoResponse
 import xyz.keinthema.serverims.constant.JwtConst.Companion.JWT_ATTR_NAME
 import xyz.keinthema.serverims.constant.MonoResponse
@@ -19,7 +22,7 @@ import xyz.keinthema.serverims.model.entity.Account
 import xyz.keinthema.serverims.service.intf.AccountService
 
 @RestController
-@RequestMapping("/account")
+@RequestMapping(ACCOUNT_PATH)
 class AccountController(private val accountService: AccountService) {
 
     @PostMapping
@@ -42,11 +45,7 @@ class AccountController(private val accountService: AccountService) {
                     AccountCreateBody(newAccount.id, newAccount.name)
                 ))
             } else {
-                Mono.just(StdResponse.makeResponseEntity(
-                    HttpStatus.INTERNAL_SERVER_ERROR,
-                    "Failed to Create Account",
-                    AccountCreateBody.void()
-                ))
+                internalServerErrorMonoResponse(AccountCreateBody.void())
             }
         }
     }
@@ -59,25 +58,21 @@ class AccountController(private val accountService: AccountService) {
         val jwtId = claims.payload.subject.toLong()
 
         return accountService.getAccountById(id)
-            .map { account ->
+            .flatMap { account ->
                  if (account == null) {
-                    StdResponse.makeResponseEntity(
-                        HttpStatus.NOT_FOUND,
-                        "Get Account Info Failed",
-                        AccountInfoBody.void()
-                    )
+                     notFoundMonoResponse(AccountInfoBody.void())
                 } else if (accountService.isLegalToAccessAllAccountInfo(jwtId, id)) {
-                    StdResponse.makeResponseEntity(
+                    Mono.just(StdResponse.makeResponseEntity(
                         HttpStatus.OK,
                         "Get Account Info Success",
                         AccountInfoBody(account)
-                    )
+                    ))
                 } else {
-                    StdResponse.makeResponseEntity(
+                    Mono.just(StdResponse.makeResponseEntity(
                         HttpStatus.OK,
                         "Get Account Info Success",
                         AccountInfoBody.publishedInfo(account)
-                    )
+                    ))
                 }
             }
     }
@@ -97,6 +92,23 @@ class AccountController(private val accountService: AccountService) {
             return unauthorizedMonoResponse(AccountModifyBody.void())
         }
 
+        val passwordMono = if (requestModifyAccount.previousPw != null && requestModifyAccount.hashedOnePw != null) {
+            accountService
+                .isLegalToModifyAccountPassword(jwtId,
+                    requestModifyAccount.previousPw)
+                .flatMap { firstCheck ->
+                    if (firstCheck == false)
+                        return@flatMap Mono.just(Pair(firstCheck, true))
+                    return@flatMap accountService
+                        .modifyAccountPassword(id,
+                            requestModifyAccount.previousPw,
+                            requestModifyAccount.hashedOnePw)
+                        .map { secondCheck -> Pair(firstCheck, secondCheck) }
+                }
+        } else {
+            Mono.just(Pair(false, false))
+        }
+
         val infoMono = if (requestModifyAccount.accountModifiablePart != null) {
             accountService
                 .modifyAccountInfo(id, requestModifyAccount.accountModifiablePart)
@@ -104,27 +116,24 @@ class AccountController(private val accountService: AccountService) {
             Mono.just(Account.void())
         }
 
-        val passwordMono = if (requestModifyAccount.previousPw != null && requestModifyAccount.hashedOnePw != null) {
-            accountService
-                .modifyAccountPassword(id,
-                    requestModifyAccount.previousPw,
-                    requestModifyAccount.hashedOnePw)
-        } else {
-            Mono.just(false)
-        }
-
         return infoMono.flatMap { info ->
-            passwordMono.map { password ->
-                val success = !(info == null || info.isVoid()) || password
-                val message = if (success) "Modify Success" else "Failed to Modify"
-                StdResponse.makeResponseEntity(
-                    if (success) HttpStatus.OK else HttpStatus.NOT_MODIFIED,
-                    message,
-                    AccountModifyBody(
-                        passwordModified = password,
-                        modifiablePart = Account.Companion.AccountModifiablePart(info)
+            passwordMono.flatMap { password ->
+                if ( (!password.first) && password.second) {
+                    unauthorizedMonoResponse(AccountModifyBody.void())
+                } else {
+                    val success = !(info == null || info.isVoid()) || (password.first && password.second)
+                    val message = if (success) "Modify Success" else "Failed to Modify"
+                    Mono.just(
+                        StdResponse.makeResponseEntity(
+                            if (success) HttpStatus.OK else HttpStatus.NOT_MODIFIED,
+                            message,
+                            AccountModifyBody(
+                                passwordModified = password.first && password.second,
+                                modifiablePart = Account.Companion.AccountModifiablePart(info)
+                            )
+                        )
                     )
-                )
+                }
             }
         }
     }
@@ -150,11 +159,7 @@ class AccountController(private val accountService: AccountService) {
                         AccountDeleteBody(id)
                     ) }
                 } else {
-                    Mono.just(StdResponse.makeResponseEntity(
-                        HttpStatus.UNAUTHORIZED,
-                        "Unauthorized",
-                        AccountDeleteBody.void()
-                    ))
+                    unauthorizedMonoResponse(AccountDeleteBody.void())
                 }
             }
     }

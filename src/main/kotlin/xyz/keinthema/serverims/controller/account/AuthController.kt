@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
 import reactor.core.publisher.Mono
+import xyz.keinthema.serverims.constant.ControllerConst.Companion.LOG_IN_PATH
 import xyz.keinthema.serverims.constant.MonoResponse
 import xyz.keinthema.serverims.handler.JwtProvider
 import xyz.keinthema.serverims.model.dto.request.RequestLogIn
@@ -20,7 +21,7 @@ import xyz.keinthema.serverims.model.dto.response.StdResponse
 class AuthController(private val authenticationManager: ReactiveAuthenticationManager,
                      private val jwtProvider: JwtProvider) {
 
-    @PostMapping("/login")
+    @PostMapping(LOG_IN_PATH)
     fun logIn(@RequestBody requestLogIn: RequestLogIn): MonoResponse<LogInBody> {
 //        return Mono.fromCallable {
 //            authenticationManager

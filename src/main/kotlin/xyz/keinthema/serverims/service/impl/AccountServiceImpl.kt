@@ -6,12 +6,15 @@ import kotlinx.coroutines.reactor.mono
 import org.springframework.data.domain.Sort
 import org.springframework.data.mongodb.core.FindAndModifyOptions
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate
+import org.springframework.data.mongodb.core.aggregation.Aggregation
 import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.Query
 import org.springframework.data.mongodb.core.query.Update
+import org.springframework.data.mongodb.core.updateMulti
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
+import reactor.kotlin.core.publisher.toMono
 import xyz.keinthema.serverims.config.MongoDBAccountsSemaphore
 import xyz.keinthema.serverims.constant.ServiceConst.Companion.ACCOUNT_COLL_NAME
 import xyz.keinthema.serverims.model.entity.Account
@@ -88,12 +91,13 @@ class AccountServiceImpl(private val accountRepository: AccountRepository,
         return accountRepository.findById(id)
     }
 
-    override fun modifyAccountInfo(id:Long, modifiablePart: Account.Companion.AccountModifiablePart): Mono<Account?> {
-        val update = Update()
-        if (modifiablePart.name != null) update.set("name", modifiablePart.name)
-        if (modifiablePart.email != null) update.set("email", modifiablePart.email)
-        if (modifiablePart.publishEmail != null) update.set("publishEmail", modifiablePart.publishEmail)
-        if (modifiablePart.publishServer != null) update.set("publishServer", modifiablePart.publishServer)
+    override fun modifyAccountInfo(id:Long, accountModifiablePart: Account.Companion.AccountModifiablePart): Mono<Account?> {
+        val update = accountModifiablePart.getUpdateObj()
+//        val update = Update()
+//        if (modifiablePart.name != null) update.set("name", modifiablePart.name)
+//        if (modifiablePart.email != null) update.set("email", modifiablePart.email)
+//        if (modifiablePart.publishEmail != null) update.set("publishEmail", modifiablePart.publishEmail)
+//        if (modifiablePart.publishServer != null) update.set("publishServer", modifiablePart.publishServer)
         return reactiveMongoTemplate.findAndModify(
             Query(Criteria.where("id").`is`(id)),
             update,
@@ -178,6 +182,31 @@ class AccountServiceImpl(private val accountRepository: AccountRepository,
         )
     }
 
+    override fun deleteServerFromMultiAccount(ids: List<Long>, serverId: Long): Mono<Void> {
+        return reactiveMongoTemplate.updateMulti(
+            Query(Criteria.where("id").`in`(ids)),
+            Update().pull("servers", serverId),
+            Account::class.java,
+            ACCOUNT_COLL_NAME
+        ).then()
+    }
+
+    override fun getNamesFromMultiAccount(ids: List<Long>): Mono<List<Pair<Long, String>>> {
+        return reactiveMongoTemplate.find(
+            Query(Criteria.where("id").`in`(ids)),
+            Account::class.java,
+            ACCOUNT_COLL_NAME
+        ).map { accounts ->
+            Pair(accounts.id, accounts.name)
+        }.collectList()
+//        val matchOperation = Aggregation.match(Criteria.where("id").`in`(ids))
+//        val projectOperation = Aggregation.project("id", "name")
+//        val aggregation = Aggregation.newAggregation(matchOperation, projectOperation)
+//        return reactiveMongoTemplate.aggregate(aggregation, ACCOUNT_COLL_NAME, Account::class.java)
+//            .map { doc -> Pair(doc.id, doc.name) }
+//            .collectList()
+    }
+
     override fun isLegalToAccessAllAccountInfo(src: Long, dest: Long): Boolean {
         return src == dest
     }
@@ -188,6 +217,13 @@ class AccountServiceImpl(private val accountRepository: AccountRepository,
 
     override fun isLegalToModifyAccountPassword(account: Account, previousPw: String): Boolean {
         return passwordEncoder.matches(previousPw, account.password)
+    }
+
+    override fun isLegalToModifyAccountPassword(id: Long, previousPw: String): Mono<Boolean> {
+        return getAccountById(id).map { account ->
+            if (account != null) isLegalToModifyAccountPassword(account, previousPw)
+            else false
+        }
     }
 
     override fun isLegalToDeleteAccount(src: Long, dest: Long, hashedPw: String?): Mono<Boolean> {

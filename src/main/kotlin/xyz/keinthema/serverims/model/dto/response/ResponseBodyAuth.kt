@@ -17,4 +17,8 @@ data class LogInBody(
             return LogInBody("")
         }
     }
+
+    override fun isVoid(): Boolean {
+        return jwtToken.isEmpty()
+    }
 }

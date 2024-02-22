@@ -3,6 +3,7 @@ package xyz.keinthema.serverims.model.entity
 import kotlinx.serialization.Serializable
 import org.springframework.data.annotation.Id
 import org.springframework.data.mongodb.core.mapping.Document
+import org.springframework.data.mongodb.core.query.Update
 
 
 @Document(collection = "accounts")
@@ -33,6 +34,15 @@ data class Account(
                 publishEmail = account?.publishEmail,
                 publishServer = account?.publishServer
             )
+
+            fun getUpdateObj(): Update {
+                val update = Update()
+                if (name != null) update.set("name", name)
+                if (email != null) update.set("email", email)
+                if (publishEmail != null) update.set("publishEmail", publishEmail)
+                if (publishServer != null) update.set("publishServer", publishServer)
+                return update
+            }
         }
     }
     fun isVoid(): Boolean = (id == -1L)

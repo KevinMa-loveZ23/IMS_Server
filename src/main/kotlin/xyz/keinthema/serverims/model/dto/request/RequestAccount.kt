@@ -31,7 +31,8 @@ data class RequestModifyAccount(
     val accountModifiablePart: Account.Companion.AccountModifiablePart?
 ): RequestAccount {
     override fun isLegal(): Boolean {
-        return (if (previousPw != null) previousPw.length == HASHED_PASSWORD_LENGTH else true)
+        return ((previousPw != null && hashedOnePw != null) || (accountModifiablePart != null))
+                && (if (previousPw != null) previousPw.length == HASHED_PASSWORD_LENGTH else true)
                 && (if (hashedOnePw != null) hashedOnePw.length == HASHED_PASSWORD_LENGTH else true)
                 && (accountModifiablePart?.isLegal() ?: true)
     }

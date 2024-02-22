@@ -28,7 +28,10 @@ data class RequestModifyServer(
         return serverModifiablePart.isLegal() ?: true
     }
     private fun Server.Companion.ServerModifiablePart.isLegal(): Boolean =
-        (if (this.name != null) this.name.length < NAME_LENGTH_LIMIT else true)
+        (this.name != null || this.description != null || this.owner != null
+//                || this.addAdmin != null || this.minusAdmin != null
+                )
+                && (if (this.name != null) this.name.length < NAME_LENGTH_LIMIT else true)
                 && (if (this.description != null) this.description.length < DESCRIPTION_LENGTH_LIMIT else true)
 }
 

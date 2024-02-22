@@ -17,6 +17,8 @@ data class ServerCreateBody(
             return ServerCreateBody(-1, "", -1)
         }
     }
+
+    override fun isVoid(): Boolean = serverId == -1L
 }
 
 data class ServerInfoBody(
@@ -35,6 +37,8 @@ data class ServerInfoBody(
             )
         }
     }
+
+    override fun isVoid(): Boolean = serverId == -1L
 }
 
 data class ServerModifyBody(
@@ -45,11 +49,17 @@ data class ServerModifyBody(
             return ServerModifyBody(Server.Companion.ServerModifiablePart(
                 name = null,
                 owner = null,
-                addAdmin = null,
-                minusAdmin = null,
+//                addAdmin = null,
+//                minusAdmin = null,
                 description = null
             ))
         }
+    }
+
+    override fun isVoid(): Boolean {
+        return serverModifiablePart.name == null
+                && serverModifiablePart.owner == null
+                && serverModifiablePart.description == null
     }
 }
 
@@ -61,4 +71,6 @@ data class ServerDeleteBody(
             return ServerDeleteBody(-1)
         }
     }
+
+    override fun isVoid(): Boolean = serverId == -1L
 }
