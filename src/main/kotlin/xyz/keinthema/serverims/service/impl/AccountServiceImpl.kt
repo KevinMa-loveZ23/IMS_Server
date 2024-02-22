@@ -132,7 +132,11 @@ class AccountServiceImpl(private val accountRepository: AccountRepository,
     }
 
     override fun deleteAccount(id: Long): Mono<Void> {
-        return accountRepository.deleteById(id)
+        return mono { coroutineScope {
+            accountsSemaphore.acquire()
+            accountRepository.deleteById(id)
+            accountsSemaphore.release()
+        } }.then()
     }
 
     override fun modifyAccountServerCreateTimes(id: Long, variation: Int): Mono<Int> {

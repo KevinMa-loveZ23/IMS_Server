@@ -110,11 +110,15 @@ class ServerServiceImpl(
                     accountService
                         .deleteServerFromMultiAccount(userList, server.id)
                         .flatMap {
-                            serverRepository.deleteById(id)
-                                .flatMap {
-                                    chatMongoTemplate
-                                        .dropCollection(server.id.toString())
-                                }
+                            mono { coroutineScope {
+                                serverSemaphore.acquire()
+                                serverRepository.deleteById(id)
+                                    .flatMap {
+                                        chatMongoTemplate
+                                            .dropCollection(server.id.toString())
+                                    }
+                                serverSemaphore.release()
+                            } }
                         }
                         .thenReturn(true)
                 }
