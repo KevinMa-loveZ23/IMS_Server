@@ -1,7 +1,6 @@
 package xyz.keinthema.serverims.service.intf
 
 import reactor.core.publisher.Mono
-import xyz.keinthema.serverims.model.entity.Server
 
 interface ServerAdminService {
     fun addAdminToServer(serverId: Long, adminId: Long): Mono<MutableSet<Long>?>

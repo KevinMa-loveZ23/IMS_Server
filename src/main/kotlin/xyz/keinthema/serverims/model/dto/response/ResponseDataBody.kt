@@ -1,7 +1,6 @@
 package xyz.keinthema.serverims.model.dto.response
 
 import kotlinx.serialization.Serializable
-import kotlin.reflect.full.createInstance
 
 /**
  * Class that implements this interface

@@ -25,7 +25,7 @@ data class RequestModifyServer(
     val serverModifiablePart: Server.Companion.ServerModifiablePart
 ): RequestServer {
     override fun isLegal(): Boolean {
-        return serverModifiablePart.isLegal() ?: true
+        return serverModifiablePart.isLegal()
     }
     private fun Server.Companion.ServerModifiablePart.isLegal(): Boolean =
         (this.name != null || this.description != null || this.owner != null

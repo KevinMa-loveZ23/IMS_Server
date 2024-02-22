@@ -11,7 +11,6 @@ import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.Query
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
-import xyz.keinthema.serverims.config.MongoDBAccountsSemaphore
 import xyz.keinthema.serverims.config.MongoDBServersSemaphore
 import xyz.keinthema.serverims.constant.ServiceConst.Companion.SERVER_COLL_NAME
 import xyz.keinthema.serverims.model.entity.Server
