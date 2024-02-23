@@ -25,6 +25,7 @@ data class AccountInfoBody(
     val name: String,
     val email: String? = null,
     val publishEmail: Boolean? = null,
+    @Serializable
     val servers: MutableSet<Long>? = null,
     val publishServer: Boolean? = null,
     val serverCreateTimes: Int? = null
