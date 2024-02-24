@@ -6,18 +6,25 @@ import org.springframework.security.authentication.ReactiveAuthenticationManager
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import reactor.core.publisher.Mono
+import xyz.keinthema.serverims.constant.ControllerConst.Companion.AUTH_PATH
 import xyz.keinthema.serverims.constant.ControllerConst.Companion.LOG_IN_PATH
+import xyz.keinthema.serverims.constant.ControllerConst.Companion.forbiddenMonoResponse
 import xyz.keinthema.serverims.constant.MonoResponse
-import xyz.keinthema.serverims.handler.JwtProvider
 import xyz.keinthema.serverims.model.dto.request.RequestLogIn
 import xyz.keinthema.serverims.model.dto.response.LogInBody
 import xyz.keinthema.serverims.model.dto.response.StdResponse
+import xyz.keinthema.serverims.service.intf.AuthService
 
 @RestController
-class AuthController(private val authenticationManager: ReactiveAuthenticationManager,
-                     private val jwtProvider: JwtProvider) {
+@RequestMapping(AUTH_PATH)
+class AuthController(
+    private val authenticationManager: ReactiveAuthenticationManager,
+//    private val jwtProvider: JwtProvider,
+    private val authService: AuthService
+) {
 
     @PostMapping(LOG_IN_PATH)
     fun logIn(@RequestBody requestLogIn: RequestLogIn): MonoResponse<LogInBody> {
@@ -44,21 +51,23 @@ class AuthController(private val authenticationManager: ReactiveAuthenticationMa
         return authenticationManager
             .authenticate(UsernamePasswordAuthenticationToken(requestLogIn.id, requestLogIn.hashedPw))
             .flatMap { auth ->
-                val jwtToken = jwtProvider.createJwtToken(requestLogIn.id)
+                val refreshToken = authService.getNewRefreshToken(requestLogIn.id)
+//                val refreshToken = jwtProvider.createRefreshToken(requestLogIn.id)
                 val responseHeaders = HttpHeaders()
-                responseHeaders.add(HttpHeaders.AUTHORIZATION, "Bearer $jwtToken")
+                responseHeaders.add(HttpHeaders.AUTHORIZATION, "Bearer $refreshToken")
                 Mono.just(StdResponse
                     .makeResponseEntity(HttpStatus.OK,
                         responseHeaders,
                         "Logged In",
-                        LogInBody(jwtToken)
+                        LogInBody(refreshToken)
                     ))
             }.onErrorResume {
-                Mono.just(StdResponse
-                    .makeResponseEntity(HttpStatus.UNAUTHORIZED,
-                        "Log In Failed",
-                        LogInBody.void()
-                    ))
+                forbiddenMonoResponse(LogInBody.void())
+//                Mono.just(StdResponse
+//                    .makeResponseEntity(HttpStatus.UNAUTHORIZED,
+//                        "Log In Failed",
+//                        LogInBody.void()
+//                    ))
             }
     }
 }

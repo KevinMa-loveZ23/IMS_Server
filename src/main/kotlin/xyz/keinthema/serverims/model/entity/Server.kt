@@ -4,8 +4,9 @@ import kotlinx.serialization.Serializable
 import org.springframework.data.annotation.Id
 import org.springframework.data.mongodb.core.mapping.Document
 import org.springframework.data.mongodb.core.query.Update
+import xyz.keinthema.serverims.constant.ServiceConst.Companion.SERVER_COLL_NAME
 
-@Document(collection = "servers")
+@Document(collection = SERVER_COLL_NAME)
 data class Server(
     @Id val id: Long,
     val name: String,

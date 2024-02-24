@@ -2,8 +2,23 @@ package xyz.keinthema.serverims.constant
 
 class JwtConst {
     companion object {
-        const val VALIDITY_IN_MILLISECOND = 3600000
+
+        enum class TimeInMsec(val msecTime: Int) {
+            SECOND(1000), // 1000 msec = 1 sec
+            MINUTE(SECOND.msecTime * 60), // 60 sec = 1 min
+            HOUR(MINUTE.msecTime * 60), // 60 min = 1 h
+            DAY(HOUR.msecTime * 24), // 24 h = 1 d
+            WEEK(DAY.msecTime * 7), // 7 d = 1 week
+            MONTH(DAY.msecTime * 30) // 30 d = 1 month
+        }
+
         const val ISSUER = "ims.kein-thema.xyz"
-        const val JWT_ATTR_NAME = "jwtInfo"
+        const val TOKEN_TYPE = "token_type"
+        enum class TokenType(val str: String, val validityMsec: Int) {
+            ACCESS("access", TimeInMsec.MINUTE.msecTime * 30), // 30 min
+            REFRESH("refresh", TimeInMsec.WEEK.msecTime) // 1 week
+        }
+
+        const val JWT_CLAIMS_ATTR_NAME = "jwtClaims"
     }
 }

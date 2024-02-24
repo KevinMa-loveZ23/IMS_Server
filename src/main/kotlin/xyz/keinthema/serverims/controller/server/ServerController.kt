@@ -11,7 +11,7 @@ import xyz.keinthema.serverims.constant.ControllerConst.Companion.SERVER_PATH
 import xyz.keinthema.serverims.constant.ControllerConst.Companion.badRequestMonoResponse
 import xyz.keinthema.serverims.constant.ControllerConst.Companion.internalServerErrorMonoResponse
 import xyz.keinthema.serverims.constant.ControllerConst.Companion.notFoundMonoResponse
-import xyz.keinthema.serverims.constant.ControllerConst.Companion.unauthorizedMonoResponse
+import xyz.keinthema.serverims.constant.ControllerConst.Companion.forbiddenMonoResponse
 import xyz.keinthema.serverims.constant.JwtConst
 import xyz.keinthema.serverims.constant.MonoResponse
 import xyz.keinthema.serverims.model.dto.request.RequestCreateServer
@@ -27,7 +27,7 @@ class ServerController(private val serverService: ServerService) {
     @PostMapping
     fun createServer(
         @RequestBody requestCreateServer: RequestCreateServer,
-        @RequestAttribute(JwtConst.JWT_ATTR_NAME) claims: Jws<Claims>
+        @RequestAttribute(JwtConst.JWT_CLAIMS_ATTR_NAME) claims: Jws<Claims>
     ): MonoResponse<ServerCreateBody> {
         if ( !requestCreateServer.isLegal()) {
             return badRequestMonoResponse(ServerCreateBody.void())
@@ -51,7 +51,7 @@ class ServerController(private val serverService: ServerService) {
     @GetMapping(SERVER_ID_PATH)
     fun getServerInfo(
         @PathVariable(SERVER_ID_STR) serverId: Long,
-        @RequestAttribute(JwtConst.JWT_ATTR_NAME) claims: Jws<Claims>
+        @RequestAttribute(JwtConst.JWT_CLAIMS_ATTR_NAME) claims: Jws<Claims>
     ): MonoResponse<ServerInfoBody> {
         val jwtId = claims.payload.subject.toLong()
         return serverService.getServerById(serverId)
@@ -77,7 +77,7 @@ class ServerController(private val serverService: ServerService) {
     fun modifyServer(
         @RequestBody requestModifyServer: RequestModifyServer,
         @PathVariable(SERVER_ID_STR) serverId: Long,
-        @RequestAttribute(JwtConst.JWT_ATTR_NAME) claims: Jws<Claims>
+        @RequestAttribute(JwtConst.JWT_CLAIMS_ATTR_NAME) claims: Jws<Claims>
     ): MonoResponse<ServerModifyBody> {
         if ( !requestModifyServer.isLegal()) {
             badRequestMonoResponse(ServerModifyBody.void())
@@ -92,7 +92,7 @@ class ServerController(private val serverService: ServerService) {
             )
             .flatMap { ok ->
                 if ( !ok) {
-                    unauthorizedMonoResponse(ServerModifyBody.void())
+                    forbiddenMonoResponse(ServerModifyBody.void())
                 } else {
                     serverService
                         .modifyServerInfo(
@@ -121,7 +121,7 @@ class ServerController(private val serverService: ServerService) {
     fun deleteServer(
         @RequestBody requestDeleteServer: RequestDeleteServer,
         @PathVariable(SERVER_ID_STR) serverId: Long,
-        @RequestAttribute(JwtConst.JWT_ATTR_NAME) claims: Jws<Claims>
+        @RequestAttribute(JwtConst.JWT_CLAIMS_ATTR_NAME) claims: Jws<Claims>
     ): MonoResponse<ServerDeleteBody> {
         if ( !requestDeleteServer.isLegal()) {
             return badRequestMonoResponse(ServerDeleteBody.void())
@@ -144,7 +144,7 @@ class ServerController(private val serverService: ServerService) {
                             }
                         }
                 } else {
-                    unauthorizedMonoResponse(ServerDeleteBody.void())
+                    forbiddenMonoResponse(ServerDeleteBody.void())
                 }
             }
     }

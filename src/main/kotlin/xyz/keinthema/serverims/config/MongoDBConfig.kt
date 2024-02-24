@@ -1,8 +1,10 @@
 package xyz.keinthema.serverims.config
 
 import com.mongodb.ConnectionString
+import com.mongodb.MongoClientSettings
 import com.mongodb.reactivestreams.client.MongoClient
 import com.mongodb.reactivestreams.client.MongoClients
+import org.bson.UuidRepresentation
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
@@ -20,7 +22,14 @@ class MongoDBConfig(val prop: MongoProperties): AbstractReactiveMongoConfigurati
     }
 
     override fun reactiveMongoClient(): MongoClient {
-        return MongoClients.create(ConnectionString("mongodb://${prop.host}:${prop.port}/${prop.database}"))
+        val clientSettings = MongoClientSettings.builder()
+            .applyConnectionString(
+                ConnectionString("mongodb://${prop.host}:${prop.port}/${prop.database}")
+            )
+            .uuidRepresentation(prop.uuidRepresentation)
+//            .uuidRepresentation(UuidRepresentation.STANDARD)
+            .build()
+        return MongoClients.create(clientSettings)
     }
 
     @Bean
@@ -46,6 +55,7 @@ data class MongoProperties(
     val host: String,
     val port: String,
     val database: String,
+    val uuidRepresentation: UuidRepresentation,
     val chat: ChatDBProperties
 ) {
     companion object {

@@ -7,10 +7,19 @@ import org.springframework.http.ResponseEntity
 
 @Serializable
 data class StdResponse<T: ResponseDataBody<T>> (
-    val httpStatus: HttpStatus,
+    val httpStatusCode: Int,
     val info: String,
     val responseBody: T
 ) {
+    constructor(
+        httpStatus: HttpStatus,
+        info: String,
+        responseBody: T
+    ): this(
+        httpStatusCode = httpStatus.value(),
+        info = info,
+        responseBody = responseBody
+    )
     companion object {
         fun <R: ResponseDataBody<R>> makeResponseEntity(httpStatus: HttpStatus,
                                                      info: String,

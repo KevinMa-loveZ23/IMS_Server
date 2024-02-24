@@ -16,7 +16,7 @@ import xyz.keinthema.serverims.constant.ControllerConst.Companion.SERVER_ADMIN_A
 import xyz.keinthema.serverims.constant.ControllerConst.Companion.SERVER_ADMIN_PATH
 import xyz.keinthema.serverims.constant.ControllerConst.Companion.SERVER_ADMIN_SERVER_ID_STR
 import xyz.keinthema.serverims.constant.ControllerConst.Companion.internalServerErrorMonoResponse
-import xyz.keinthema.serverims.constant.ControllerConst.Companion.unauthorizedMonoResponse
+import xyz.keinthema.serverims.constant.ControllerConst.Companion.forbiddenMonoResponse
 import xyz.keinthema.serverims.constant.JwtConst
 import xyz.keinthema.serverims.constant.MonoResponse
 import xyz.keinthema.serverims.model.dto.response.AdminServerAddBody
@@ -32,7 +32,7 @@ class ServerAdminController(private val serverAdminService: ServerAdminService) 
     fun addAdmin(
         @PathVariable(SERVER_ADMIN_SERVER_ID_STR) serverId: Long,
         @PathVariable(SERVER_ADMIN_ACCOUNT_ID_STR) accountId: Long,
-        @RequestAttribute(JwtConst.JWT_ATTR_NAME) claims: Jws<Claims>
+        @RequestAttribute(JwtConst.JWT_CLAIMS_ATTR_NAME) claims: Jws<Claims>
     ): MonoResponse<AdminServerAddBody> {
         val jwtId = claims.payload.subject.toLong()
         return serverAdminService.isLegalToModifyAdmin(
@@ -57,7 +57,7 @@ class ServerAdminController(private val serverAdminService: ServerAdminService) 
                         }
                     }
             } else {
-                unauthorizedMonoResponse(AdminServerAddBody.void())
+                forbiddenMonoResponse(AdminServerAddBody.void())
             }
         }
     }
@@ -65,7 +65,7 @@ class ServerAdminController(private val serverAdminService: ServerAdminService) 
     @GetMapping
     fun getAdmins(
         @PathVariable(SERVER_ADMIN_SERVER_ID_STR) serverId: Long,
-        @RequestAttribute(JwtConst.JWT_ATTR_NAME) claims: Jws<Claims>
+        @RequestAttribute(JwtConst.JWT_CLAIMS_ATTR_NAME) claims: Jws<Claims>
     ): MonoResponse<AdminServerInfoBody> {
         val jwtId = claims.payload.subject.toLong()
 
@@ -87,7 +87,7 @@ class ServerAdminController(private val serverAdminService: ServerAdminService) 
                         }
                     }
             } else {
-                unauthorizedMonoResponse(AdminServerInfoBody.void())
+                forbiddenMonoResponse(AdminServerInfoBody.void())
             }
         }
     }
@@ -96,7 +96,7 @@ class ServerAdminController(private val serverAdminService: ServerAdminService) 
     fun deleteAdmin(
         @PathVariable(SERVER_ADMIN_SERVER_ID_STR) serverId: Long,
         @PathVariable(SERVER_ADMIN_ACCOUNT_ID_STR) accountId: Long,
-        @RequestAttribute(JwtConst.JWT_ATTR_NAME) claims: Jws<Claims>
+        @RequestAttribute(JwtConst.JWT_CLAIMS_ATTR_NAME) claims: Jws<Claims>
     ): MonoResponse<AdminServerDeleteBody> {
         val jwtId = claims.payload.subject.toLong()
 
@@ -123,7 +123,7 @@ class ServerAdminController(private val serverAdminService: ServerAdminService) 
                             }
                         }
                 } else {
-                    unauthorizedMonoResponse(AdminServerDeleteBody.void())
+                    forbiddenMonoResponse(AdminServerDeleteBody.void())
                 }
             }
     }

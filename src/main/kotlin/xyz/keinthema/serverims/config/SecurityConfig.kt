@@ -22,8 +22,10 @@ import xyz.keinthema.serverims.handler.ShaSaltedPasswordEncoder
 
 @Configuration
 @EnableWebFluxSecurity
-class SecurityConfig(private val userDetailsService: ReactiveUserDetailsService,
-                     private val jwtAuthFilter: JwtAuthFilter) {
+class SecurityConfig(
+    private val userDetailsService: ReactiveUserDetailsService,
+//    private val jwtAuthFilter: JwtAuthFilter
+) {
 //    @Bean
 //    fun filterChain(http: HttpSecurity): SecurityFilterChain {
 //        http.authorizeHttpRequests { authz ->

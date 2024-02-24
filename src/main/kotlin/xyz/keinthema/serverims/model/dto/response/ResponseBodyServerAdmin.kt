@@ -6,6 +6,7 @@ import kotlinx.serialization.Serializable
 sealed interface ResponseBodyServerAdmin<T>: ResponseDataBody<T> {
 }
 
+@Serializable
 data class AdminServerAddBody(
     val success: Boolean
 ): ResponseBodyServerAdmin<AdminServerAddBody> {
@@ -18,6 +19,7 @@ data class AdminServerAddBody(
     override fun isVoid(): Boolean = !success
 }
 
+@Serializable
 data class AdminServerInfoBody(
     val adminIdNamePairs: MutableSet<Pair<Long, String>>?
 ): ResponseBodyServerAdmin<AdminServerInfoBody> {
@@ -30,6 +32,7 @@ data class AdminServerInfoBody(
     override fun isVoid(): Boolean = adminIdNamePairs == null
 }
 
+@Serializable
 data class AdminServerDeleteBody(
     val success: Boolean
 ): ResponseBodyServerAdmin<AdminServerDeleteBody> {

@@ -11,7 +11,9 @@ typealias MonoResponse<T> = Mono<ResponseEntity<StdResponse<T>>>
 class ControllerConst {
     companion object {
 
+        const val AUTH_PATH = "/auth"
         const val LOG_IN_PATH = "/login"
+        const val REFRESH_PATH = "/refresh"
 
         const val ACCOUNT_PATH = "/account"
         const val ACCOUNT_ID_STR = "accountId"
@@ -33,6 +35,14 @@ class ControllerConst {
                 responseDataBody
             ))
         }
+        fun <T: ResponseDataBody<T>> forbiddenMonoResponse(responseDataBody: T): MonoResponse<T> {
+            return Mono.just(StdResponse.makeResponseEntity(
+                HttpStatus.FORBIDDEN,
+                "Forbidden",
+                responseDataBody
+            ))
+        }
+
         fun <T: ResponseDataBody<T>> unauthorizedMonoResponse(responseDataBody: T): MonoResponse<T> {
             return Mono.just(StdResponse.makeResponseEntity(
                 HttpStatus.UNAUTHORIZED,

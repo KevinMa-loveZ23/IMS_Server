@@ -7,6 +7,7 @@ import xyz.keinthema.serverims.model.entity.Server
 sealed interface ResponseBodyServer<T>: ResponseDataBody<T> {
 }
 
+@Serializable
 data class ServerCreateBody(
     val serverId: Long,
     val name: String,
@@ -21,6 +22,7 @@ data class ServerCreateBody(
     override fun isVoid(): Boolean = serverId == -1L
 }
 
+@Serializable
 data class ServerInfoBody(
     val serverId: Long,
     val name: String,
@@ -41,6 +43,7 @@ data class ServerInfoBody(
     override fun isVoid(): Boolean = serverId == -1L
 }
 
+@Serializable
 data class ServerModifyBody(
     val serverModifiablePart: Server.Companion.ServerModifiablePart
 ): ResponseBodyServer<ServerModifyBody> {
@@ -63,6 +66,7 @@ data class ServerModifyBody(
     }
 }
 
+@Serializable
 data class ServerDeleteBody(
     val serverId: Long
 ): ResponseBodyServer<ServerDeleteBody> {

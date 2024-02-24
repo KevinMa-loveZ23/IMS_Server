@@ -7,6 +7,7 @@ import xyz.keinthema.serverims.model.entity.Account
 sealed interface ResponseBodyAccount<T>: ResponseDataBody<T> {
 }
 
+@Serializable
 data class AccountCreateBody(
     val id: Long,
     val name: String
@@ -20,6 +21,7 @@ data class AccountCreateBody(
     override fun isVoid(): Boolean = id == -1L
 }
 
+@Serializable
 data class AccountInfoBody(
     val id: Long,
     val name: String,
@@ -57,6 +59,7 @@ data class AccountInfoBody(
     override fun isVoid(): Boolean = id == -1L
 }
 
+@Serializable
 data class AccountModifyBody(
     val passwordModified: Boolean,
     val modifiablePart: Account.Companion.AccountModifiablePart?
@@ -70,6 +73,7 @@ data class AccountModifyBody(
     override fun isVoid(): Boolean = !passwordModified && modifiablePart == null
 }
 
+@Serializable
 data class AccountDeleteBody(
     val id: Long
 ): ResponseBodyAccount<AccountDeleteBody> {

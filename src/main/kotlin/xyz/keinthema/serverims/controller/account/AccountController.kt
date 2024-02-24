@@ -11,8 +11,8 @@ import xyz.keinthema.serverims.constant.ControllerConst.Companion.ACCOUNT_PATH
 import xyz.keinthema.serverims.constant.ControllerConst.Companion.badRequestMonoResponse
 import xyz.keinthema.serverims.constant.ControllerConst.Companion.internalServerErrorMonoResponse
 import xyz.keinthema.serverims.constant.ControllerConst.Companion.notFoundMonoResponse
-import xyz.keinthema.serverims.constant.ControllerConst.Companion.unauthorizedMonoResponse
-import xyz.keinthema.serverims.constant.JwtConst.Companion.JWT_ATTR_NAME
+import xyz.keinthema.serverims.constant.ControllerConst.Companion.forbiddenMonoResponse
+import xyz.keinthema.serverims.constant.JwtConst.Companion.JWT_CLAIMS_ATTR_NAME
 import xyz.keinthema.serverims.constant.MonoResponse
 import xyz.keinthema.serverims.model.dto.request.RequestCreateAccount
 import xyz.keinthema.serverims.model.dto.request.RequestDeleteAccount
@@ -53,7 +53,7 @@ class AccountController(private val accountService: AccountService) {
     @GetMapping(ACCOUNT_ID_PATH)
     fun getAccountInfo(
         @PathVariable(ACCOUNT_ID_STR) id: Long,
-        @RequestAttribute(JWT_ATTR_NAME) claims: Jws<Claims>
+        @RequestAttribute(JWT_CLAIMS_ATTR_NAME) claims: Jws<Claims>
     ): MonoResponse<AccountInfoBody> {
         val jwtId = claims.payload.subject.toLong()
 
@@ -81,7 +81,7 @@ class AccountController(private val accountService: AccountService) {
     fun modifyAccount(
         @RequestBody requestModifyAccount: RequestModifyAccount,
         @PathVariable(ACCOUNT_ID_STR) id: Long,
-        @RequestAttribute(JWT_ATTR_NAME) claims: Jws<Claims>
+        @RequestAttribute(JWT_CLAIMS_ATTR_NAME) claims: Jws<Claims>
     ): MonoResponse<AccountModifyBody> {
         if ( !requestModifyAccount.isLegal()) {
             return badRequestMonoResponse(AccountModifyBody.void())
@@ -89,7 +89,7 @@ class AccountController(private val accountService: AccountService) {
 
         val jwtId = claims.payload.subject.toLong()
         if ( !accountService.isLegalToModifyAccountInfo(jwtId, id)) {
-            return unauthorizedMonoResponse(AccountModifyBody.void())
+            return forbiddenMonoResponse(AccountModifyBody.void())
         }
 
         val passwordMono = if (requestModifyAccount.previousPw != null && requestModifyAccount.hashedOnePw != null) {
@@ -119,7 +119,7 @@ class AccountController(private val accountService: AccountService) {
         return infoMono.flatMap { info ->
             passwordMono.flatMap { password ->
                 if ( (!password.first) && password.second) {
-                    unauthorizedMonoResponse(AccountModifyBody.void())
+                    forbiddenMonoResponse(AccountModifyBody.void())
                 } else {
                     val success = !(info == null || info.isVoid()) || (password.first && password.second)
                     val message = if (success) "Modify Success" else "Failed to Modify"
@@ -142,7 +142,7 @@ class AccountController(private val accountService: AccountService) {
     fun deleteAccount(
         @RequestBody requestDeleteAccount: RequestDeleteAccount,
         @PathVariable(ACCOUNT_ID_STR) id: Long,
-        @RequestAttribute(JWT_ATTR_NAME) claims: Jws<Claims>
+        @RequestAttribute(JWT_CLAIMS_ATTR_NAME) claims: Jws<Claims>
     ): MonoResponse<AccountDeleteBody> {
         if ( !requestDeleteAccount.isLegal()) {
             return badRequestMonoResponse(AccountDeleteBody.void())
@@ -159,7 +159,7 @@ class AccountController(private val accountService: AccountService) {
                         AccountDeleteBody(id)
                     ) }
                 } else {
-                    unauthorizedMonoResponse(AccountDeleteBody.void())
+                    forbiddenMonoResponse(AccountDeleteBody.void())
                 }
             }
     }
