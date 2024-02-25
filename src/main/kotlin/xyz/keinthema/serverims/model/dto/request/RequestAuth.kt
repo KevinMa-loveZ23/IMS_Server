@@ -10,11 +10,17 @@ sealed interface RequestAuth {
 
 data class RequestLogIn(
     val id: Long,
-    val hashedPw: String,
-    val temporaryLogIn: Boolean
+    val hashedPw: String
 ): RequestAuth {
     override fun isLegal(): Boolean {
         return hashedPw.length == HASHED_PASSWORD_LENGTH
     }
 }
 
+data class RequestRenewRefreshToken(
+    val oldRefreshToken: String
+): RequestAuth {
+    override fun isLegal(): Boolean {
+        return oldRefreshToken.isNotEmpty()
+    }
+}

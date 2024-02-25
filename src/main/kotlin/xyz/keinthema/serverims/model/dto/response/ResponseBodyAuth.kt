@@ -25,6 +25,20 @@ data class LogInBody(
     }
 }
 
+@Serializable
+data class RenewRefreshTokenBody(
+    val newRefreshToken: String
+): ResponseBodyAuth<RenewRefreshTokenBody> {
+    companion object {
+        fun void(): RenewRefreshTokenBody {
+            return RenewRefreshTokenBody("")
+        }
+    }
+    override fun isVoid(): Boolean {
+        return newRefreshToken.isEmpty()
+    }
+}
+
 /**
  * Extremely weird when removing below @Serializable
  * Json.encodeToString() fails to find serializer of below class

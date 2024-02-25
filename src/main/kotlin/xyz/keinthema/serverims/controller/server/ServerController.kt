@@ -80,7 +80,7 @@ class ServerController(private val serverService: ServerService) {
         @RequestAttribute(JwtConst.JWT_CLAIMS_ATTR_NAME) claims: Jws<Claims>
     ): MonoResponse<ServerModifyBody> {
         if ( !requestModifyServer.isLegal()) {
-            badRequestMonoResponse(ServerModifyBody.void())
+            return badRequestMonoResponse(ServerModifyBody.void())
         }
         val jwtId = claims.payload.subject.toLong()
 

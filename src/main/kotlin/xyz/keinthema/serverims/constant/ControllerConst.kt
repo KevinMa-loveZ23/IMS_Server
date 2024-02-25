@@ -28,6 +28,9 @@ class ControllerConst {
         const val SERVER_ADMIN_ACCOUNT_ID_STR = ACCOUNT_ID_STR
         const val SERVER_ADMIN_ACCOUNT_ID_PATH = "/{$SERVER_ADMIN_ACCOUNT_ID_STR}"
 
+        /**
+         * 400
+         * */
         fun <T: ResponseDataBody<T>> badRequestMonoResponse(responseDataBody: T): MonoResponse<T> {
             return Mono.just(StdResponse.makeResponseEntity(
                 HttpStatus.BAD_REQUEST,
@@ -35,14 +38,9 @@ class ControllerConst {
                 responseDataBody
             ))
         }
-        fun <T: ResponseDataBody<T>> forbiddenMonoResponse(responseDataBody: T): MonoResponse<T> {
-            return Mono.just(StdResponse.makeResponseEntity(
-                HttpStatus.FORBIDDEN,
-                "Forbidden",
-                responseDataBody
-            ))
-        }
-
+        /**
+         * 401
+         * */
         fun <T: ResponseDataBody<T>> unauthorizedMonoResponse(responseDataBody: T): MonoResponse<T> {
             return Mono.just(StdResponse.makeResponseEntity(
                 HttpStatus.UNAUTHORIZED,
@@ -50,7 +48,19 @@ class ControllerConst {
                 responseDataBody
             ))
         }
-
+        /**
+         * 403
+         * */
+        fun <T: ResponseDataBody<T>> forbiddenMonoResponse(responseDataBody: T): MonoResponse<T> {
+            return Mono.just(StdResponse.makeResponseEntity(
+                HttpStatus.FORBIDDEN,
+                "Forbidden",
+                responseDataBody
+            ))
+        }
+        /**
+         * 404
+         * */
         fun <T: ResponseDataBody<T>> notFoundMonoResponse(responseDataBody: T): MonoResponse<T> {
             return Mono.just(StdResponse.makeResponseEntity(
                 HttpStatus.NOT_FOUND,
@@ -58,7 +68,19 @@ class ControllerConst {
                 responseDataBody
             ))
         }
-
+        /**
+         * 400
+         * */
+        fun <T: ResponseDataBody<T>> tooManyRequestsMonoResponse(responseDataBody: T): MonoResponse<T> {
+            return Mono.just(StdResponse.makeResponseEntity(
+                HttpStatus.TOO_MANY_REQUESTS,
+                "Too Many Requests",
+                responseDataBody
+            ))
+        }
+        /**
+         * 500
+         * */
         fun <T: ResponseDataBody<T>> internalServerErrorMonoResponse(responseDataBody: T): MonoResponse<T> {
             return Mono.just(StdResponse.makeResponseEntity(
                 HttpStatus.INTERNAL_SERVER_ERROR,

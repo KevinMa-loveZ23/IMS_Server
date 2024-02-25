@@ -1,6 +1,7 @@
 package xyz.keinthema.serverims.service.impl
 
 import io.jsonwebtoken.Claims
+import io.jsonwebtoken.Jws
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
 import xyz.keinthema.serverims.constant.JwtConst
@@ -21,26 +22,26 @@ class AuthServiceImpl(
         return jwsService.getAccessJws(id = id)
     }
 
-    override fun getTokenType(claims: Claims): JwtConst.Companion.TokenType? {
-        return JwtConst.Companion.TokenType.entries.find { it.str == claims[TOKEN_TYPE] }
+    override fun getTokenType(claims: Jws<Claims>): JwtConst.Companion.TokenType? {
+        return JwtConst.Companion.TokenType.entries.find { it.str == claims.payload[TOKEN_TYPE] }
     }
 
-    override fun renewRefreshToken(claims: Claims): Mono<String> {
-        val id: Long = claims.subject.toLong()
+    override fun renewRefreshToken(claims: Jws<Claims>): Mono<String> {
+        val id: Long = claims.payload.subject.toLong()
         val newJws = jwsService.getRefreshJws(id)
         return if (isNecessaryToDeactivateToken(claims)) {
-            jwsService.deactivateJws(UUID.fromString(claims.id), claims.expiration)
+            jwsService.deactivateJws(UUID.fromString(claims.payload.id), claims.payload.expiration)
                 .thenReturn(newJws)
         } else {
             Mono.just(newJws)
         }
     }
 
-    override fun isLegalToRenewToken(claims: Claims): Boolean {
-        return claims.expiration.time - Date().time < JwtConst.Companion.TokenType.REFRESH.validityMsec / 2
+    override fun isLegalToRenewToken(claims: Jws<Claims>): Boolean {
+        return claims.payload.expiration.time - Date().time < JwtConst.Companion.TokenType.REFRESH.validityMsec / 2
     }
 
-    override fun isNecessaryToDeactivateToken(claims: Claims): Boolean {
-        return claims.expiration.time - Date().time < JwtConst.Companion.TimeInMsec.DAY.msecTime
+    override fun isNecessaryToDeactivateToken(claims: Jws<Claims>): Boolean {
+        return claims.payload.expiration.time - Date().time < JwtConst.Companion.TimeInMsec.DAY.msecTime
     }
 }

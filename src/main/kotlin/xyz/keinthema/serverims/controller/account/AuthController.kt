@@ -11,19 +11,26 @@ import org.springframework.web.bind.annotation.RestController
 import reactor.core.publisher.Mono
 import xyz.keinthema.serverims.constant.ControllerConst.Companion.AUTH_PATH
 import xyz.keinthema.serverims.constant.ControllerConst.Companion.LOG_IN_PATH
+import xyz.keinthema.serverims.constant.ControllerConst.Companion.REFRESH_PATH
+import xyz.keinthema.serverims.constant.ControllerConst.Companion.badRequestMonoResponse
 import xyz.keinthema.serverims.constant.ControllerConst.Companion.forbiddenMonoResponse
+import xyz.keinthema.serverims.constant.ControllerConst.Companion.tooManyRequestsMonoResponse
 import xyz.keinthema.serverims.constant.MonoResponse
 import xyz.keinthema.serverims.model.dto.request.RequestLogIn
+import xyz.keinthema.serverims.model.dto.request.RequestRenewRefreshToken
 import xyz.keinthema.serverims.model.dto.response.LogInBody
+import xyz.keinthema.serverims.model.dto.response.RenewRefreshTokenBody
 import xyz.keinthema.serverims.model.dto.response.StdResponse
 import xyz.keinthema.serverims.service.intf.AuthService
+import xyz.keinthema.serverims.service.intf.JwsService
 
 @RestController
 @RequestMapping(AUTH_PATH)
 class AuthController(
     private val authenticationManager: ReactiveAuthenticationManager,
 //    private val jwtProvider: JwtProvider,
-    private val authService: AuthService
+    private val authService: AuthService,
+    private val jwsService: JwsService
 ) {
 
     @PostMapping(LOG_IN_PATH)
@@ -68,6 +75,33 @@ class AuthController(
 //                        "Log In Failed",
 //                        LogInBody.void()
 //                    ))
+            }
+    }
+
+    @PostMapping(REFRESH_PATH)
+    fun renewRefreshToken(
+        @RequestBody requestRenewRefreshToken: RequestRenewRefreshToken
+    ):  MonoResponse<RenewRefreshTokenBody> {
+        if ( !requestRenewRefreshToken.isLegal()) {
+            return badRequestMonoResponse(RenewRefreshTokenBody.void())
+        }
+        return jwsService.legalClaimsOrNull(requestRenewRefreshToken.oldRefreshToken)
+            .flatMap { claimsPair ->
+                val claims = claimsPair.second
+                if ( !claimsPair.first || claims == null) {
+                    badRequestMonoResponse(RenewRefreshTokenBody.void())
+                } else if ( !authService.isLegalToRenewToken(claims)) {
+                    tooManyRequestsMonoResponse(RenewRefreshTokenBody.void())
+                } else {
+                    authService.renewRefreshToken(claims)
+                        .flatMap { newJws ->
+                            Mono.just(StdResponse.makeResponseEntity(
+                                HttpStatus.OK,
+                                "Renewed Refresh Token",
+                                RenewRefreshTokenBody(newJws)
+                            ))
+                        }
+                }
             }
     }
 }
