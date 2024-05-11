@@ -1,6 +1,7 @@
 package xyz.keinthema.serverims.model.dto.request
 
 import kotlinx.serialization.Serializable
+import xyz.keinthema.serverims.constant.AccountId
 import xyz.keinthema.serverims.constant.RequestConst.Companion.EMAIL_LENGTH_LIMIT
 import xyz.keinthema.serverims.constant.RequestConst.Companion.HASHED_PASSWORD_LENGTH
 import xyz.keinthema.serverims.constant.RequestConst.Companion.NAME_LENGTH_LIMIT
@@ -48,4 +49,13 @@ data class RequestDeleteAccount(
     override fun isLegal(): Boolean {
         return if (hashedPw != null) hashedPw.length == HASHED_PASSWORD_LENGTH else true
     }
+}
+
+data class RequestAccountNames(
+    val userIdSet: Set<AccountId>
+): RequestAccount {
+    override fun isLegal(): Boolean {
+        return userIdSet.isNotEmpty()
+    }
+
 }

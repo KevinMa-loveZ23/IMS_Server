@@ -1,6 +1,11 @@
+@file:UseSerializers(LongAsStringSerializer::class)
 package xyz.keinthema.serverims.model.dto.response
 
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.UseSerializers
+import kotlinx.serialization.builtins.LongAsStringSerializer
+import xyz.keinthema.serverims.constant.AccountId
+import xyz.keinthema.serverims.constant.ServerId
 import xyz.keinthema.serverims.model.entity.Account
 
 @Serializable
@@ -27,7 +32,6 @@ data class AccountInfoBody(
     val name: String,
     val email: String? = null,
     val publishEmail: Boolean? = null,
-    @Serializable
     val servers: MutableSet<Long>? = null,
     val publishServer: Boolean? = null,
     val serverCreateTimes: Int? = null
@@ -84,4 +88,29 @@ data class AccountDeleteBody(
     }
 
     override fun isVoid(): Boolean = id == -1L
+}
+
+@Serializable
+data class AccountNamesBody(
+    val nameMap: Map<AccountId, String>
+): ResponseBodyAccount<AccountNamesBody> {
+    companion object {
+        fun void(): AccountNamesBody {
+            return AccountNamesBody(mapOf())
+        }
+    }
+    override fun isVoid(): Boolean = nameMap.isEmpty()
+}
+
+@Serializable
+data class AccountServersBody(
+    val serverNameMap: Map<ServerId, String>
+): ResponseBodyAccount<AccountServersBody> {
+    companion object {
+        fun void(): AccountServersBody {
+            return AccountServersBody(mapOf())
+        }
+    }
+
+    override fun isVoid(): Boolean = serverNameMap.isEmpty()
 }

@@ -1,6 +1,9 @@
+@file:UseSerializers(LongAsStringSerializer::class)
 package xyz.keinthema.serverims.model.dto.response
 
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.UseSerializers
+import kotlinx.serialization.builtins.LongAsStringSerializer
 import xyz.keinthema.serverims.model.entity.Server
 
 @Serializable

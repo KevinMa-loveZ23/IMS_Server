@@ -14,10 +14,13 @@ class ControllerConst {
         const val AUTH_PATH = "/auth"
         const val LOG_IN_PATH = "/login"
         const val REFRESH_PATH = "/refresh"
+        const val LOG_OUT_PATH = "/logout"
 
         const val ACCOUNT_PATH = "/account"
         const val ACCOUNT_ID_STR = "accountId"
         const val ACCOUNT_ID_PATH = "/{$ACCOUNT_ID_STR}"
+        const val ACCOUNT_NAMES_PATH = "/names"
+        const val ACCOUNT_SERVERS_PATH = "$ACCOUNT_ID_PATH/servers"
 
         const val SERVER_PATH = "/server"
         const val SERVER_ID_STR = "serverId"
@@ -27,6 +30,30 @@ class ControllerConst {
         const val SERVER_ADMIN_PATH = "/server/{$SERVER_ADMIN_SERVER_ID_STR}/admin"
         const val SERVER_ADMIN_ACCOUNT_ID_STR = ACCOUNT_ID_STR
         const val SERVER_ADMIN_ACCOUNT_ID_PATH = "/{$SERVER_ADMIN_ACCOUNT_ID_STR}"
+
+        const val SERVER_MEMBER_SERVER_ID_STR = SERVER_ID_STR
+        const val SERVER_MEMBER_PATH = "/server/{$SERVER_MEMBER_SERVER_ID_STR}/member"
+        const val SERVER_MEMBER_WAITING_PATH = "/waiting"
+        const val SERVER_MEMBER_ACCOUNT_ID_STR = ACCOUNT_ID_STR
+        const val SERVER_MEMBER_ACCOUNT_ID_PATH = "/{$SERVER_MEMBER_ACCOUNT_ID_STR}"
+        const val SERVER_MEMBER_JOIN_CODE_STR = "code"
+        const val SERVER_MEMBER_JOIN_CODE_DEFAULT = "0"
+        const val SERVER_MEMBER_CODE_PATH = "/code"
+        const val SERVER_MEMBER_CODE_MESSAGE_STR = "msg"
+
+        const val SERVER_CHAT_SERVER_ID_STR = SERVER_ID_STR
+        const val SERVER_CHAT_PATH = "/server/{$SERVER_CHAT_SERVER_ID_STR}/chat"
+        const val SERVER_CHAT_CHAT_ID_STR = "chatId"
+        const val SERVER_CHAT_ID_PATH = "/{$SERVER_CHAT_CHAT_ID_STR}"
+        const val SERVER_CHAT_IMG_PATH = "$SERVER_CHAT_ID_PATH/img"
+        const val SERVER_CHAT_IMG_NAME_STR = "imgFullName"
+        const val SERVER_CHAT_IMG_NAME_PATH = "/{$SERVER_CHAT_IMG_NAME_STR}"
+        const val SERVER_CHAT_IMG_WITH_NAME_PATH = "$SERVER_CHAT_IMG_PATH$SERVER_CHAT_IMG_NAME_PATH"
+        const val SERVER_CHAT_MESSAGE_PATH = "$SERVER_CHAT_ID_PATH/message"
+        const val SERVER_CHAT_MESSAGE_UNTIL_STR = "until"
+        const val SERVER_CHAT_MESSAGE_UNTIL_DEFAULT = "0"
+        const val SERVER_CHAT_MESSAGE_NUMBER_STR = "num"
+        const val SERVER_CHAT_MESSAGE_NUMBER_DEFAULT = "20"
 
         /**
          * 400

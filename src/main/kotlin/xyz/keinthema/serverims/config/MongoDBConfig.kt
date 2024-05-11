@@ -24,7 +24,7 @@ class MongoDBConfig(val prop: MongoProperties): AbstractReactiveMongoConfigurati
     override fun reactiveMongoClient(): MongoClient {
         val clientSettings = MongoClientSettings.builder()
             .applyConnectionString(
-                ConnectionString("mongodb://${prop.host}:${prop.port}/${prop.database}")
+                ConnectionString("mongodb://${prop.host}:${prop.port}/${prop.database}?createDatabase=true")
             )
             .uuidRepresentation(prop.uuidRepresentation)
 //            .uuidRepresentation(UuidRepresentation.STANDARD)
@@ -43,7 +43,7 @@ class MongoDBConfig(val prop: MongoProperties): AbstractReactiveMongoConfigurati
         return ReactiveMongoTemplate(
             MongoClients.create(
                 ConnectionString("mongodb://${prop.chat.host}" +
-                        ":${prop.chat.port}/${prop.chat.database}")
+                        ":${prop.chat.port}/${prop.chat.database}?createDatabase=true")
             ),
             prop.chat.database
         )

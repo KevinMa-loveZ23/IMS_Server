@@ -38,3 +38,9 @@ out/
 
 ### Kotlin ###
 .kotlin
+
+### test dir ###
+0/
+!src/main/resources/application.properties
+!src/main/resources/application-example.yml
+src/main/resources

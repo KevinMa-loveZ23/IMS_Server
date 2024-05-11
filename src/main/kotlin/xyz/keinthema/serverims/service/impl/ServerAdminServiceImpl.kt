@@ -14,7 +14,7 @@ import xyz.keinthema.serverims.service.intf.AccountService
 import xyz.keinthema.serverims.service.intf.ServerAdminService
 
 @Service
-class ServerAdminServerImpl(
+class ServerAdminServiceImpl(
     private val serverRepository: ServerRepository,
     private val reactiveMongoTemplate: ReactiveMongoTemplate,
     private val accountService: AccountService
@@ -32,12 +32,30 @@ class ServerAdminServerImpl(
             }
     }
 
-    override fun getAdminsFromServer(serverId: Long): Mono<MutableSet<Pair<Long, String>>?> {
+    override fun getAdminsFromServer(serverId: Long): Mono<Map<Long, String>> {
+//        val aggregation = Aggregation.newAggregation(
+//            Aggregation.match(Criteria.where("_id").`is`(serverId)),
+//            Aggregation.unwind("admins")
+//        )
+//        val result: Mono<MutableSet<Pair<Long, String>>> = reactiveMongoTemplate.aggregate(
+//            aggregation,
+//            ServiceConst.SERVER_COLL_NAME,
+//            List::class.java
+//        ).collectList().flatMap { rawList ->
+//            println(rawList)
+//            val tempList: List<Long> = rawList[0] as List<Long>
+//            println(tempList)
+//            accountService.getNamesFromMultiAccount(tempList)
+//                .map { list ->
+//                    list.toMutableSet()
+//                }
+//        }
+//        return result
         return serverRepository.findById(serverId)
             .flatMap { server ->
                 accountService.getNamesFromMultiAccount(server.admins.toList())
                     .map { list ->
-                        list.toMutableSet()
+                        list.toMap()
                     }
             }
     }

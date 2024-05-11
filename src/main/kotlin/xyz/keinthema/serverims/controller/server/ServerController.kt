@@ -18,11 +18,15 @@ import xyz.keinthema.serverims.model.dto.request.RequestCreateServer
 import xyz.keinthema.serverims.model.dto.request.RequestDeleteServer
 import xyz.keinthema.serverims.model.dto.request.RequestModifyServer
 import xyz.keinthema.serverims.model.dto.response.*
+import xyz.keinthema.serverims.service.intf.MessageService
 import xyz.keinthema.serverims.service.intf.ServerService
 
 @RestController
 @RequestMapping(SERVER_PATH)
-class ServerController(private val serverService: ServerService) {
+class ServerController(
+    private val serverService: ServerService,
+    private val messageService: MessageService
+) {
 
     @PostMapping
     fun createServer(
@@ -36,13 +40,13 @@ class ServerController(private val serverService: ServerService) {
         return serverService
             .createServer(jwtId, requestCreateServer.name, requestCreateServer.description)
             .flatMap { server ->
-                if (server == null) {
+                if (server == null || server.isVoid()) {
                     badRequestMonoResponse(ServerCreateBody.void())
                 } else {
                     Mono.just(StdResponse.makeResponseEntity(
                         HttpStatus.CREATED,
                         "Server Created",
-                        ServerCreateBody(serverId = server.id, name = server.name, owner = jwtId)
+                        ServerCreateBody(serverId = server.id, name = server.name, owner = server.owner)
                     ))
                 }
             }
@@ -133,14 +137,17 @@ class ServerController(private val serverService: ServerService) {
                 if (ok) {
                     serverService.deleteServer(serverId)
                         .flatMap { success ->
-                            if (success) {
+                            if (!success) {
                                 internalServerErrorMonoResponse(ServerDeleteBody.void())
                             } else {
-                                Mono.just(StdResponse.makeResponseEntity(
-                                    HttpStatus.OK,
-                                    "Delete Success",
-                                    ServerDeleteBody(serverId)
-                                ))
+                                Mono.zip(
+                                    messageService.deleteAllFiles(serverId),
+                                    Mono.just(StdResponse.makeResponseEntity(
+                                        HttpStatus.OK,
+                                        "Delete Success",
+                                        ServerDeleteBody(serverId)
+                                    ))
+                                ).map { it.t2 }
                             }
                         }
                 } else {

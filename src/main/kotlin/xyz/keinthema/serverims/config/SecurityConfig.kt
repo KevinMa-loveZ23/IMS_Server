@@ -75,7 +75,7 @@ class SecurityConfig(
             .authorizeExchange { exchanges -> exchanges
 //            .pathMatchers(HttpMethod.POST, "/account").permitAll()
 //            .pathMatchers(HttpMethod.POST, "/login").permitAll()
-            .pathMatchers(HttpMethod.POST, "/account", "/login").permitAll()
+            .pathMatchers(HttpMethod.POST, "/account", "/auth/login").permitAll()
             .anyExchange()
                 .permitAll()
 //            .authenticated()
@@ -84,6 +84,9 @@ class SecurityConfig(
 //            .addFilterAt(jwtAuthFilter, SecurityWebFiltersOrder.AUTHENTICATION)
             .csrf { csrf ->
                 csrf.disable()
+            }
+            .cors { cors ->
+                cors.disable()
             }
 
 ////        http

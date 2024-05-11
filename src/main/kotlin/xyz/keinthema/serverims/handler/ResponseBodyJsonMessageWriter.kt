@@ -1,7 +1,11 @@
 package xyz.keinthema.serverims.handler
 
+import kotlinx.serialization.builtins.LongAsStringSerializer
+import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.*
+import kotlinx.serialization.modules.SerializersModule
+import kotlinx.serialization.modules.serializersModuleOf
 import org.reactivestreams.Publisher
 import org.springframework.core.ResolvableType
 import org.springframework.core.codec.EncodingException
@@ -22,6 +26,19 @@ class ResponseBodyJsonMessageWriter: HttpMessageWriter<ResponseEntity<*>> {
     override fun canWrite(elementType: ResolvableType, mediaType: MediaType?): Boolean {
         return elementType.rawClass?.let { ResponseEntity::class.java.isAssignableFrom(it) } ?: false
     }
+
+//    private val json = Json {
+////        serializersModule = SerializersModule {
+////            contextual(Long::class, LongAsStringSerializer)
+////        }
+//        serializersModule = serializersModuleOf(Long::class, LongAsStringSerializer)
+//    }
+//
+//    object LongAsStringSerializer : JsonTransformingSerializer<Long>(Long.serializer()) {
+//        override fun transformSerialize(element: JsonElement): JsonElement {
+//            return JsonPrimitive(element.jsonPrimitive.content)
+//        }
+//    }
 
     override fun write(
         inputStream: Publisher<out ResponseEntity<*>>,

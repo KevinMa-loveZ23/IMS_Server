@@ -1,6 +1,7 @@
 package xyz.keinthema.serverims.service.intf
 
 import reactor.core.publisher.Mono
+import xyz.keinthema.serverims.constant.ServerId
 import xyz.keinthema.serverims.model.entity.Server
 
 interface ServerService {
@@ -30,6 +31,12 @@ interface ServerService {
      * of everyone who is a member of the server.
      * */
     fun deleteServer(id: Long): Mono<Boolean>
+
+    companion object {
+        fun getServerRecordCollName(id: ServerId): String {
+            return id.toString() + "record"
+        }
+    }
 
     fun isLegalToModifyServerInfo(operator: Long, serverId: Long, serverModifiablePart: Server.Companion.ServerModifiablePart): Mono<Boolean>
     fun isLegalToDeleteServer(operator: Long, serverId: Long): Mono<Boolean>

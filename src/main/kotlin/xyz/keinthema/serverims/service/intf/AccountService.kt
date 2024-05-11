@@ -1,6 +1,8 @@
 package xyz.keinthema.serverims.service.intf
 
 import reactor.core.publisher.Mono
+import xyz.keinthema.serverims.constant.AccountId
+import xyz.keinthema.serverims.constant.ServerId
 import xyz.keinthema.serverims.model.entity.Account
 
 
@@ -23,6 +25,7 @@ interface AccountService {
     fun deleteServerFromMultiAccount(ids: List<Long>, serverId: Long): Mono<Void>
 
     fun getNamesFromMultiAccount(ids: List<Long>): Mono<List<Pair<Long, String>>>
+    fun getServerNames(id: AccountId): Mono<Map<ServerId, String>>
 
     fun isLegalToAccessAllAccountInfo(src: Long, dest: Long): Boolean
     fun isLegalToModifyAccountInfo(src: Long, dest: Long): Boolean

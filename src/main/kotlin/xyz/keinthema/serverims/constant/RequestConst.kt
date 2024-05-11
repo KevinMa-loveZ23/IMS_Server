@@ -16,5 +16,9 @@ class RequestConst {
                  false
              }
         const val DESCRIPTION_LENGTH_LIMIT = 3 * 500
+
+        const val JOIN_SERVER_MESSAGE_LENGTH_LIMIT = 3 * 64
+
+        const val CHAT_NAME_LENGTH_LIMIT = 32
     }
 }

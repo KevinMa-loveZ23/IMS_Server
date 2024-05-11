@@ -10,6 +10,7 @@ interface AuthService {
     fun getNewAccessToken(id: Long): String
     fun getTokenType(claims: Jws<Claims>): JwtConst.Companion.TokenType?
     fun renewRefreshToken(claims: Jws<Claims>): Mono<String>
+    fun revokeRefreshToken(claims: Jws<Claims>): Mono<Boolean>
     fun isLegalToRenewToken(claims: Jws<Claims>): Boolean
     fun isNecessaryToDeactivateToken(claims: Jws<Claims>): Boolean
 }

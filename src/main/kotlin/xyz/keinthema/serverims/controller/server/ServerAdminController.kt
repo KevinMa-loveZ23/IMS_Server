@@ -75,14 +75,14 @@ class ServerAdminController(private val serverAdminService: ServerAdminService) 
         ).flatMap { ok ->
             if (ok) {
                 serverAdminService.getAdminsFromServer(serverId)
-                    .flatMap { adminSet ->
-                        if (adminSet == null) {
+                    .flatMap { adminNameMap ->
+                        if (adminNameMap == null) {
                             internalServerErrorMonoResponse(AdminServerInfoBody.void())
                         } else {
                             Mono.just(StdResponse.makeResponseEntity(
                                 HttpStatus.OK,
                                 "Get Admins",
-                                AdminServerInfoBody(adminSet)
+                                AdminServerInfoBody(adminNameMap)
                             ))
                         }
                     }

@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
 import xyz.keinthema.serverims.constant.JwtConst
 import xyz.keinthema.serverims.constant.JwtConst.Companion.TOKEN_TYPE
+import xyz.keinthema.serverims.constant.TimeConst
 import xyz.keinthema.serverims.service.intf.AuthService
 import xyz.keinthema.serverims.service.intf.JwsService
 import java.util.*
@@ -30,11 +31,15 @@ class AuthServiceImpl(
         val id: Long = claims.payload.subject.toLong()
         val newJws = jwsService.getRefreshJws(id)
         return if (isNecessaryToDeactivateToken(claims)) {
-            jwsService.deactivateJws(UUID.fromString(claims.payload.id), claims.payload.expiration)
+            jwsService.revokeJws(UUID.fromString(claims.payload.id), claims.payload.expiration)
                 .thenReturn(newJws)
         } else {
             Mono.just(newJws)
         }
+    }
+
+    override fun revokeRefreshToken(claims: Jws<Claims>): Mono<Boolean> {
+        return jwsService.revokeJws(UUID.fromString(claims.payload.id), claims.payload.expiration)
     }
 
     override fun isLegalToRenewToken(claims: Jws<Claims>): Boolean {
@@ -42,6 +47,6 @@ class AuthServiceImpl(
     }
 
     override fun isNecessaryToDeactivateToken(claims: Jws<Claims>): Boolean {
-        return claims.payload.expiration.time - Date().time < JwtConst.Companion.TimeInMsec.DAY.msecTime
+        return claims.payload.expiration.time - Date().time < TimeConst.Companion.TimeInMsec.DAY.msecTime
     }
 }

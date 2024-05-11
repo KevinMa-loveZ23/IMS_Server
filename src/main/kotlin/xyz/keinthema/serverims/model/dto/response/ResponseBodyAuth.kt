@@ -1,7 +1,10 @@
+@file:UseSerializers(LongAsStringSerializer::class)
 package xyz.keinthema.serverims.model.dto.response
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.UseSerializers
+import kotlinx.serialization.builtins.LongAsStringSerializer
 
 @Serializable
 sealed interface ResponseBodyAuth<T>: ResponseDataBody<T> {
@@ -36,6 +39,20 @@ data class RenewRefreshTokenBody(
     }
     override fun isVoid(): Boolean {
         return newRefreshToken.isEmpty()
+    }
+}
+
+@Serializable
+data class LogOutBody(
+    val success: Boolean
+): ResponseBodyAuth<LogOutBody> {
+    companion object {
+        fun void(): LogOutBody {
+            return LogOutBody(false)
+        }
+    }
+    override fun isVoid(): Boolean {
+        return !success
     }
 }
 

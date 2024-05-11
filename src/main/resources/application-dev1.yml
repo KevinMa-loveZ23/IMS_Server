@@ -1,0 +1,20 @@
+server:
+  port: 9998
+jwt:
+  issuer: ims.kein-thema.xyz
+spring:
+  webflux:
+    base-path: /api
+  data:
+    mongodb:
+      host: localhost
+      port: 27017
+      database: infoDB
+      uuid-representation: standard
+      chat:
+        host: ${spring.data.mongodb.host}
+        port: ${spring.data.mongodb.port}
+        database: serverChats
+    redis:
+      host: localhost
+      port: 6379

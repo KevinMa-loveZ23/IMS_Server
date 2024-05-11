@@ -1,6 +1,9 @@
+@file:UseSerializers(LongAsStringSerializer::class)
 package xyz.keinthema.serverims.model.dto.response
 
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.UseSerializers
+import kotlinx.serialization.builtins.LongAsStringSerializer
 
 @Serializable
 sealed interface ResponseBodyServerAdmin<T>: ResponseDataBody<T> {
@@ -21,7 +24,7 @@ data class AdminServerAddBody(
 
 @Serializable
 data class AdminServerInfoBody(
-    val adminIdNamePairs: MutableSet<Pair<Long, String>>?
+    val adminIdNameMap: Map<Long, String>?
 ): ResponseBodyServerAdmin<AdminServerInfoBody> {
     companion object {
         fun void(): AdminServerInfoBody {
@@ -29,7 +32,7 @@ data class AdminServerInfoBody(
         }
     }
 
-    override fun isVoid(): Boolean = adminIdNamePairs == null
+    override fun isVoid(): Boolean = adminIdNameMap == null
 }
 
 @Serializable

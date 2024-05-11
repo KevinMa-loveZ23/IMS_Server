@@ -3,24 +3,40 @@ package xyz.keinthema.serverims.service.impl
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactor.mono
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.data.domain.Sort
 import org.springframework.data.mongodb.core.FindAndModifyOptions
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate
+import org.springframework.data.mongodb.core.findAndModify
 import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.Query
 import org.springframework.data.mongodb.core.query.Update
+import org.springframework.data.mongodb.core.update
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
+import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import reactor.kotlin.core.publisher.toMono
 import xyz.keinthema.serverims.config.MongoDBAccountsSemaphore
+import xyz.keinthema.serverims.constant.AccountId
+import xyz.keinthema.serverims.constant.ControllerConst
+import xyz.keinthema.serverims.constant.ServerId
 import xyz.keinthema.serverims.constant.ServiceConst.Companion.ACCOUNT_COLL_NAME
+import xyz.keinthema.serverims.constant.ServiceConst.Companion.SERVER_COLL_NAME
+import xyz.keinthema.serverims.model.dto.response.AccountServersBody
 import xyz.keinthema.serverims.model.entity.Account
+import xyz.keinthema.serverims.model.entity.ReadingRecord
+import xyz.keinthema.serverims.model.entity.Server
 import xyz.keinthema.serverims.repository.AccountRepository
+import xyz.keinthema.serverims.repository.ServerRepository
 import xyz.keinthema.serverims.service.intf.AccountService
+import xyz.keinthema.serverims.service.intf.ServerService.Companion.getServerRecordCollName
 
 @Service
 class AccountServiceImpl(private val accountRepository: AccountRepository,
+                         private val serverRepository: ServerRepository,
                          private val reactiveMongoTemplate: ReactiveMongoTemplate,
+                         @Qualifier("chatMongoTemplate") private val chatMongoTemplate: ReactiveMongoTemplate,
                          private val accountsSemaphore: MongoDBAccountsSemaphore,
                          private val passwordEncoder: PasswordEncoder
 ): AccountService {
@@ -132,11 +148,56 @@ class AccountServiceImpl(private val accountRepository: AccountRepository,
     }
 
     override fun deleteAccount(id: Long): Mono<Void> {
-        return mono { coroutineScope {
-            accountsSemaphore.acquire()
-            accountRepository.deleteById(id)
-            accountsSemaphore.release()
-        } }.then()
+        return getAccountById(id).flatMap { account ->
+            val servers = account?.servers ?: mutableSetOf()
+//            reactiveMongoTemplate.updateMulti(
+//                Query(Criteria.where("id").`in`(servers)),
+//                Update().pull("userList", id),
+//                Server::class.java,
+//                SERVER_COLL_NAME
+//            )
+            Mono.zip(
+                reactiveMongoTemplate.findAndModify(
+                    Query(Criteria.where("id").`in`(servers)),
+                    Update().pull("userList", id).pull("admins", id),
+//                FindAndModifyOptions.options().returnNew(true),
+                    Server::class.java,
+                    SERVER_COLL_NAME
+                ),
+//                chatMongoTemplate.findAndRemove(
+//                    Query(Criteria.where("id").`is`(id)),
+//                    ReadingRecord::class.java,
+//                    getServerRecordCollName()
+//                ),
+                Flux.fromIterable(servers).flatMap { serverId ->
+                    Mono.zip(
+                        serverRepository.findById(serverId).flatMap { server ->
+                            if (server.owner == id) {
+                                reactiveMongoTemplate.findAndModify(
+                                    Query(Criteria.where("id").`in`(servers)),
+                                    Update().set("owner", -1L),
+                                    Server::class.java,
+                                    SERVER_COLL_NAME
+                                )
+                            } else {
+                                Mono.just(true)
+                            }
+                        },
+                        chatMongoTemplate.findAndRemove(
+                            Query(Criteria.where("id").`is`(id)),
+                            ReadingRecord::class.java,
+                            getServerRecordCollName(serverId)
+                        )
+                    )
+                }.toMono()
+            )
+        }.flatMap {
+            mono { coroutineScope {
+                accountsSemaphore.acquire()
+                accountRepository.deleteById(id)
+                accountsSemaphore.release()
+            } }.then()
+        }
     }
 
     override fun modifyAccountServerCreateTimes(id: Long, variation: Int): Mono<Int> {
@@ -184,12 +245,21 @@ class AccountServiceImpl(private val accountRepository: AccountRepository,
     }
 
     override fun deleteServerFromMultiAccount(ids: List<Long>, serverId: Long): Mono<Void> {
-        return reactiveMongoTemplate.updateMulti(
+//        return reactiveMongoTemplate.updateMulti(
+//            Query(Criteria.where("id").`in`(ids.toTypedArray())),
+//            Update().pull("servers", serverId),
+//            Account::class.java,
+//            ACCOUNT_COLL_NAME
+//        ).then()
+        return reactiveMongoTemplate.findAndModify(
             Query(Criteria.where("id").`in`(ids)),
             Update().pull("servers", serverId),
+            FindAndModifyOptions.options().returnNew(true),
             Account::class.java,
             ACCOUNT_COLL_NAME
-        ).then()
+        )
+            //.map { println(it) }
+            .then()
     }
 
     override fun getNamesFromMultiAccount(ids: List<Long>): Mono<List<Pair<Long, String>>> {
@@ -197,8 +267,8 @@ class AccountServiceImpl(private val accountRepository: AccountRepository,
             Query(Criteria.where("id").`in`(ids)),
             Account::class.java,
             ACCOUNT_COLL_NAME
-        ).map { accounts ->
-            Pair(accounts.id, accounts.name)
+        ).map { account ->
+            Pair(account.id, account.name)
         }.collectList()
 //        val matchOperation = Aggregation.match(Criteria.where("id").`in`(ids))
 //        val projectOperation = Aggregation.project("id", "name")
@@ -206,6 +276,23 @@ class AccountServiceImpl(private val accountRepository: AccountRepository,
 //        return reactiveMongoTemplate.aggregate(aggregation, ACCOUNT_COLL_NAME, Account::class.java)
 //            .map { doc -> Pair(doc.id, doc.name) }
 //            .collectList()
+    }
+
+    override fun getServerNames(id: AccountId): Mono<Map<ServerId, String>> {
+        return getAccountById(id)
+            .flatMap { account ->
+                if (account == null) {
+                    Mono.just(mapOf())
+                } else {
+                    reactiveMongoTemplate.find(
+                        Query(Criteria.where("id").`in`(account.servers)),
+                        Server::class.java,
+                        SERVER_COLL_NAME
+                    ).map { server ->
+                        Pair(server.id, server.name)
+                    }.collectList().map { it.toMap() }
+                }
+            }
     }
 
     override fun isLegalToAccessAllAccountInfo(src: Long, dest: Long): Boolean {

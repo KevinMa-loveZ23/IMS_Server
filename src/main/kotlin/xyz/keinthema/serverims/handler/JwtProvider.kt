@@ -8,7 +8,6 @@ import io.jsonwebtoken.security.Curve
 import io.jsonwebtoken.security.Jwks
 import org.springframework.stereotype.Component
 import xyz.keinthema.serverims.constant.JwtConst
-import xyz.keinthema.serverims.constant.JwtConst.Companion.ISSUER
 import xyz.keinthema.serverims.constant.JwtConst.Companion.TOKEN_TYPE
 import java.security.KeyPair
 import java.security.PublicKey
@@ -16,7 +15,9 @@ import java.util.*
 
 
 @Component
-class JwtProvider {
+class JwtProvider(
+    private val jwtConst: JwtConst
+) {
 
     companion object {
         private val curve: Curve = Jwks.CRV.Ed25519
@@ -52,7 +53,8 @@ class JwtProvider {
         val now = Date()
         val validity = Date(now.time.plus(tokenType.validityMsec))
         val claims = Jwts.claims()
-            .issuer(ISSUER)
+//            .issuer(ISSUER)
+            .issuer(jwtConst.issuer)
             .issuedAt(now)
             .expiration(validity)
             .subject(id.toString())
@@ -73,7 +75,8 @@ class JwtProvider {
         return try {
 //            Jwts.parser().setSigningKey(secretKey).parseClaimsJws(token)
             Jwts.parser()
-                .requireIssuer(ISSUER)
+//                .requireIssuer(ISSUER)
+                .requireIssuer(jwtConst.issuer)
                 .verifyWith(publicKeyEd25519).build()
                 .parseSignedClaims(jwsToken)
         } catch (e: JwtException) {

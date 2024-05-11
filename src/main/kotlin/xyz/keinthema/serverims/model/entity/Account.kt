@@ -4,19 +4,21 @@ import kotlinx.serialization.Serializable
 import org.springframework.data.annotation.Id
 import org.springframework.data.mongodb.core.mapping.Document
 import org.springframework.data.mongodb.core.query.Update
+import xyz.keinthema.serverims.constant.AccountId
+import xyz.keinthema.serverims.constant.ServerId
 import xyz.keinthema.serverims.constant.ServiceConst.Companion.ACCOUNT_COLL_NAME
 
 
 @Document(collection = ACCOUNT_COLL_NAME)
 data class Account(
-    @Id val id: Long,
+    @Id val id: AccountId,
     val name: String,
     val password: String,
     val email: String,
     val publishEmail: Boolean = true,
-    val servers: MutableSet<Long>,
+    val servers: MutableSet<ServerId>,
     val publishServer: Boolean = true,
-    val serverCreateTimes: Int = 0
+    val serverCreateTimes: Int = 1
 ) {
     companion object {
         fun void(): Account {

@@ -1,24 +1,27 @@
 package xyz.keinthema.serverims.controller.account
 
+import io.jsonwebtoken.Claims
+import io.jsonwebtoken.Jws
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.security.authentication.ReactiveAuthenticationManager
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Mono
 import xyz.keinthema.serverims.constant.ControllerConst.Companion.AUTH_PATH
 import xyz.keinthema.serverims.constant.ControllerConst.Companion.LOG_IN_PATH
+import xyz.keinthema.serverims.constant.ControllerConst.Companion.LOG_OUT_PATH
 import xyz.keinthema.serverims.constant.ControllerConst.Companion.REFRESH_PATH
 import xyz.keinthema.serverims.constant.ControllerConst.Companion.badRequestMonoResponse
 import xyz.keinthema.serverims.constant.ControllerConst.Companion.forbiddenMonoResponse
+import xyz.keinthema.serverims.constant.ControllerConst.Companion.internalServerErrorMonoResponse
 import xyz.keinthema.serverims.constant.ControllerConst.Companion.tooManyRequestsMonoResponse
+import xyz.keinthema.serverims.constant.JwtConst
 import xyz.keinthema.serverims.constant.MonoResponse
 import xyz.keinthema.serverims.model.dto.request.RequestLogIn
 import xyz.keinthema.serverims.model.dto.request.RequestRenewRefreshToken
 import xyz.keinthema.serverims.model.dto.response.LogInBody
+import xyz.keinthema.serverims.model.dto.response.LogOutBody
 import xyz.keinthema.serverims.model.dto.response.RenewRefreshTokenBody
 import xyz.keinthema.serverims.model.dto.response.StdResponse
 import xyz.keinthema.serverims.service.intf.AuthService
@@ -101,6 +104,24 @@ class AuthController(
                                 RenewRefreshTokenBody(newJws)
                             ))
                         }
+                }
+            }
+    }
+
+    @DeleteMapping(LOG_OUT_PATH)
+    fun logOut(
+        @RequestAttribute(JwtConst.JWT_CLAIMS_ATTR_NAME) claims: Jws<Claims>
+    ): MonoResponse<LogOutBody> {
+        return authService.revokeRefreshToken(claims)
+            .flatMap {
+                if (it) {
+                    Mono.just(StdResponse.makeResponseEntity(
+                        HttpStatus.OK,
+                        "Logged Out",
+                        LogOutBody(true)
+                    ))
+                } else {
+                    internalServerErrorMonoResponse(LogOutBody.void())
                 }
             }
     }

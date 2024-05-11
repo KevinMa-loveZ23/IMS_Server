@@ -7,13 +7,16 @@ import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Mono
 import xyz.keinthema.serverims.constant.ControllerConst.Companion.ACCOUNT_ID_PATH
 import xyz.keinthema.serverims.constant.ControllerConst.Companion.ACCOUNT_ID_STR
+import xyz.keinthema.serverims.constant.ControllerConst.Companion.ACCOUNT_NAMES_PATH
 import xyz.keinthema.serverims.constant.ControllerConst.Companion.ACCOUNT_PATH
+import xyz.keinthema.serverims.constant.ControllerConst.Companion.ACCOUNT_SERVERS_PATH
 import xyz.keinthema.serverims.constant.ControllerConst.Companion.badRequestMonoResponse
 import xyz.keinthema.serverims.constant.ControllerConst.Companion.internalServerErrorMonoResponse
 import xyz.keinthema.serverims.constant.ControllerConst.Companion.notFoundMonoResponse
 import xyz.keinthema.serverims.constant.ControllerConst.Companion.forbiddenMonoResponse
 import xyz.keinthema.serverims.constant.JwtConst.Companion.JWT_CLAIMS_ATTR_NAME
 import xyz.keinthema.serverims.constant.MonoResponse
+import xyz.keinthema.serverims.model.dto.request.RequestAccountNames
 import xyz.keinthema.serverims.model.dto.request.RequestCreateAccount
 import xyz.keinthema.serverims.model.dto.request.RequestDeleteAccount
 import xyz.keinthema.serverims.model.dto.request.RequestModifyAccount
@@ -162,5 +165,50 @@ class AccountController(private val accountService: AccountService) {
                     forbiddenMonoResponse(AccountDeleteBody.void())
                 }
             }
+    }
+
+    @PostMapping(ACCOUNT_NAMES_PATH)
+    fun getMultiNames(
+        @RequestBody requestAccountNames: RequestAccountNames,
+        @RequestAttribute(JWT_CLAIMS_ATTR_NAME) claims: Jws<Claims>
+    ): MonoResponse<AccountNamesBody>{
+        if ( !requestAccountNames.isLegal()) {
+            return badRequestMonoResponse(AccountNamesBody.void())
+        }
+        val jwtId = claims.payload.subject.toLong()
+
+        return accountService.getNamesFromMultiAccount(requestAccountNames.userIdSet.toList())
+            .map { it.toMap() }.flatMap { nameMap ->
+                if (nameMap.isEmpty()) {
+                    internalServerErrorMonoResponse(AccountNamesBody.void())
+                } else {
+                    Mono.just(StdResponse.makeResponseEntity(
+                        HttpStatus.OK,
+                        "Get Names",
+                        AccountNamesBody(nameMap)
+                    ))
+                }
+            }
+    }
+
+    @GetMapping(ACCOUNT_SERVERS_PATH)
+    fun getServerNames(
+        @PathVariable(ACCOUNT_ID_STR) id: Long,
+        @RequestAttribute(JWT_CLAIMS_ATTR_NAME) claims: Jws<Claims>
+    ): MonoResponse<AccountServersBody> {
+        if (id != claims.payload.subject.toLong()) {
+            return forbiddenMonoResponse(AccountServersBody.void())
+        }
+        return accountService.getServerNames(id).flatMap {
+            if (it.isEmpty()) {
+                internalServerErrorMonoResponse(AccountServersBody.void())
+            } else {
+                Mono.just(StdResponse.makeResponseEntity(
+                    HttpStatus.OK,
+                    "Get Server Names Success",
+                    AccountServersBody(it)
+                ))
+            }
+        }
     }
 }
