@@ -97,7 +97,7 @@ class ServerMemberController(private val serverMemberService: ServerMemberServic
         @RequestAttribute(JwtConst.JWT_CLAIMS_ATTR_NAME) claims: Jws<Claims>
     ): MonoResponse<ServerJoinAllowBody> {
         val jwtId = claims.payload.subject.toLong()
-        return serverMemberService.isLegalToAllowJoinRequest(serverId, jwtId)
+        return serverMemberService.isLegalToAllowJoinRequest(jwtId, serverId)
             .flatMap { ok ->
                 if ( !ok) {
                     forbiddenMonoResponse(ServerJoinAllowBody.void())

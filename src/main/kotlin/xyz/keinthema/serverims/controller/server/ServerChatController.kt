@@ -48,25 +48,46 @@ class ServerChatController(
             if (isLegal) {
                 messageService.saveFile(serverId, file)
                     .flatMap { idAndName ->
-                        val id = idAndName.first
+                        val id   = idAndName.first
                         val fileName = idAndName.second
-                        val metaMessage = messageService.newMediaMessage(
-                            messageId = id,
-                            serverId = serverId,
-                            chatId = chatId,
-                            userId = jwtId,
-                            fileName = fileName
-                        )
-                        Mono.zip(
-                            messageService.storeMessage(metaMessage),
-                            messageService.sendMessageByServer(metaMessage, null)
-                        ).subscribe()
+                        //
+//                        val metaMessage = messageService.newMediaMessage(
+//                            messageId = id,
+//                            serverId = serverId,
+//                            chatId = chatId,
+//                            userId = jwtId,
+//                            fileName = fileName
+//                        )
+                        //
+//                        Mono.zip(
+//                            messageService.storeMessage(metaMessage),
+//                            messageService.sendMessageByServer(metaMessage, null)
+//                        ).subscribe()
+//                        Mono.just(
+//                            StdResponse.makeResponseEntity(
+//                            HttpStatus.OK,
+//                            "Upload Success",
+//                            ImageUploadBody(id, fileName)
+//                        ))
+                        //
+//                        Mono.zip(
+//                            messageService.storeMessage(metaMessage),
+//                            messageService.sendMessageByServer(metaMessage, null)
+//                        ).map {
+//                            StdResponse.makeResponseEntity(
+//                                HttpStatus.OK,
+//                                "Upload Success",
+//                                ImageUploadBody(id, fileName)
+//                            )
+//                        }
+                        //
                         Mono.just(
                             StdResponse.makeResponseEntity(
-                            HttpStatus.OK,
-                            "Upload Success",
-                            ImageUploadBody(id, fileName)
-                        ))
+                                HttpStatus.OK,
+                                "Upload Success",
+                                ImageUploadBody(id, fileName)
+                            )
+                        )
                     }
             } else {
                 forbiddenMonoResponse(ImageUploadBody.void())

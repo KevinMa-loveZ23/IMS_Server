@@ -18,7 +18,7 @@ data class ResponseMessage(
 //    val userId: AccountId,
     val content: String,
     val localId: Int,
-//    val type: Int
+    val type: Int
 ) {
     companion object {
         fun void(): ResponseMessage {
@@ -27,7 +27,8 @@ data class ResponseMessage(
                 serverId = -1L,
                 chatId = -1,
                 content = "",
-                localId = -1
+                localId = -1,
+                type = -1
             )
         }
         fun fromStringContent(content: String): ResponseMessage {
@@ -36,7 +37,8 @@ data class ResponseMessage(
                 serverId = -1L,
                 chatId = -1,
                 content = content,
-                localId = -1
+                localId = -1,
+                type = -1
             )
         }
         fun fromMetaMessage(metaMessage: MetaMessage): ResponseMessage {
@@ -45,7 +47,8 @@ data class ResponseMessage(
                 serverId = metaMessage.serverId,
                 chatId = metaMessage.chatId,
                 content = "",
-                localId = metaMessage.localId
+                localId = metaMessage.localId,
+                type = metaMessage.type
             )
         }
     }

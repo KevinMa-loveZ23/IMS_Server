@@ -114,10 +114,13 @@ class MessageServiceImpl(
 
         fun sendMessageByServer(metaMessage: MetaMessage, excludedSessionSinks: Sinks.Many<String>?): Mono<Void> {
             val forwardMessageJson = ForwardMessage(metaMessage =  metaMessage).toJsonString()
+//            println("message: ${metaMessage.content}; excluded: ${excludedSessionSinks.toString()}")
+//            println("list: $listOfSessionsByUser")
             return Flux.fromIterable(
                 listOfUserIdByServer[metaMessage.serverId] ?: emptySet()
             ).map { accountId ->
-                if (accountId == metaMessage.userId) {
+//                println(accountId)
+                if (excludedSessionSinks != null && accountId == metaMessage.userId) {
                     listOfSessionsByUser[accountId]?.sessionMap?.values
                         ?.forEach {
                             if (it != excludedSessionSinks) {
