@@ -7,3 +7,7 @@ Api generally follows the REST style.
 Using Spring Reactive, MongoDB, Redis and MinIO.
 
 Using [Java JWT: JSON Web Token for Java and Android](https://github.com/jwtk/jjwt) for JWS Token and [Eclipse Angus - Mail](https://github.com/eclipse-ee4j/angus-mail) for E-mail address validator.
+
+The frontend repository is [ims-project-frontend
+](https://github.com/KevinMa-loveZ23/ims-project-frontend "KevinMa-loveZ23/ims-project-frontend
+").
